@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetMC Tool</title>
+  <link href="./output.css" rel="stylesheet" />
+</head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetMC Tool</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+  
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .sidebar-icon {
+      width: 24px;
+      height: 24px;
+    }
+    .graph-line {
+      stroke: #4ade80;
+      stroke-width: 2;
+      fill: none;
+    }
+    .graph-area {
+      fill: url(#gradient);
+      opacity: 0.2;
+    }
+    .card {
+      background-color: #212121;
+      border-radius: 10px;
+    }
+    .flame-icon {
+      background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+      border-radius: 10px;
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #484848;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #5a5a5a;
+    }
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #2e2e2e;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background-color: #1a1a1a;
+      border-radius: 10px;
+    }
+    button.active {
+      background-color: #3a3a3a;
+    }
+    li > a.active {
+      background-color: #2e2e2e;
+    }
+    @keyframes fillStatusBar {
+      0% {
+        width: 0%;
+      }
+      100% {
+        width: 100%;
+      }
+    }
+
+    .status-bar-container {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background-color: #2e2e2e;
+      position: relative;
+    }
+
+    .status-bar {
+      width: 0%;
+      height: 8px;
+      border-radius: 4px;
+      background-color: transparent;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 30px #303030 inset !important;
+      -webkit-text-fill-color: white !important;
+      caret-color: white !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+    input:-moz-autofill,
+    input:-moz-autofill:focus {
+      background-color: #303030 !important;
+      color: white !important;
+    }
+    input[autocompleted],
+    input[autocomplete="on"] {
+      color: white !important;
+    }
+    #server-ip {
+      color: white !important;
+    }
+    @keyframes loadingAnimation {
+      0% {
+        left: -100%;
+      }
+      100% {
+        left: 100%;
+      }
+    }
+
+    .animate-loading {
+      animation: loadingAnimation 1.5s infinite linear;
+    }
+  </style>
+</head>
+<body class="">
+  <div class="flex h-[100vh] p-6">
+    <div class="w-72 p-6 flex flex-col card">
+      <div class="flex items-center mb-6">
+        <img src="icons/logo.png" alt="Logo" class="w-10 h-10 mr-3 rounded-lg" />
+        <div>
+          <div class="font-bold text-white">NetMC Tool</div>
+          <div class="text-xs text-gray-400">Created by Xqedii</div>
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <div class="bg-[#2e2e2e] rounded-lg px-3 py-2 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" placeholder="Search..." class="bg-transparent border-none focus:outline-none text-sm w-full text-gray-300">
+        </div>
+      </div>
+      
+      <nav class="flex-1">
+        <ul class="space-y-2">
+          <li>
+            <a href="#" id="dashboard" class="active sidebar-link flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-[#2e2e2e] duration-150 all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-icon mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="spoof-likes" class="sidebar-link flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-[#2e2e2e] duration-150 all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-icon mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span>Spoof Likes</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="scan-server" class="sidebar-link flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-[#2e2e2e] duration-150 all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-icon mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span>Scan Server</span>
+            </a>
+          </li>
+          <script>
+            document.addEventListener('DOMContentLoaded', () => {
+              const sidebarLinks = document.querySelectorAll('.sidebar-link');
+          
+              sidebarLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  const clickedButton = e.target.closest('.sidebar-link');
+                  if (clickedButton.id == "dashboard") {
+                    document.getElementById('card-ServerStatus').classList.remove('hidden');
+                    document.getElementById('card-LatestServers').classList.remove('hidden');
+                    document.getElementById('card-scanServer').classList.add('hidden');
+                    document.getElementById('card-SpoofLikes').classList.add('hidden');
+                    document.getElementById('card-selectedServer').classList.add('hidden');
+                    document.getElementById('card-scannedServer').classList.add('hidden');
+                  }
+                  if (clickedButton.id == "spoof-likes") {
+                    document.getElementById('card-ServerStatus').classList.add('hidden');
+                    document.getElementById('card-LatestServers').classList.add('hidden');
+                    document.getElementById('card-scanServer').classList.add('hidden');
+                    document.getElementById('card-SpoofLikes').classList.remove('hidden');
+                    document.getElementById('card-selectedServer').classList.remove('hidden');
+                    document.getElementById('card-scannedServer').classList.add('hidden');
+                  }
+                  if (clickedButton.id == "scan-server") {
+                    document.getElementById('card-ServerStatus').classList.add('hidden');
+                    document.getElementById('card-LatestServers').classList.add('hidden');
+                    document.getElementById('card-SpoofLikes').classList.add('hidden');
+                    document.getElementById('card-selectedServer').classList.add('hidden');
+                    document.getElementById('card-scanServer').classList.remove('hidden');
+                    document.getElementById('card-scannedServer').classList.add('hidden');
+                  }
+                  sidebarLinks.forEach(l => l.classList.remove('active'));
+                  clickedButton.classList.add('active');
+                });
+              });
+            });
+          </script>
+          
+          
+        </ul>
+      </nav>
+
+      <!-- Settings Popup -->
+      <div id="settings-popup" class="fixed inset-0 bg-black opacity-0 pointer-events-none transition-opacity duration-150 ease-in-out items-center justify-center z-50 flex">
+        
+        <div class="card p-6">
+          <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold mb-2 text-center">Settings</h1>
+          <p class="text-gray-400 mb-6 text-center">NetMC Tool settings menu</p>
+          <nav class="flex-1">
+            <ul class="space-y-2">
+              <li>
+                <a href="#" class="bg-[#2e2e2e] flex items-center px-4 py-3 text-gray-300 rounded-lg duration-150 all">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-icon mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.4721 16.7023C17.3398 18.2608 15.6831 19.3584 13.8064 19.7934C11.9297 20.2284 9.95909 19.9716 8.25656 19.0701C6.55404 18.1687 5.23397 16.6832 4.53889 14.8865C3.84381 13.0898 3.82039 11.1027 4.47295 9.29011C5.12551 7.47756 6.41021 5.96135 8.09103 5.02005C9.77184 4.07875 11.7359 3.77558 13.6223 4.16623C15.5087 4.55689 17.1908 5.61514 18.3596 7.14656C19.5283 8.67797 20.1052 10.5797 19.9842 12.5023M19.9842 12.5023L21.4842 11.0023M19.9842 12.5023L18.4842 11.0023" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8V12L15 15" />
+                  </svg>
+                  
+                  <div class="flex flex-col flex-grow mr-6">
+                    <span>Update Stats</span>
+                    <small class="text-xs text-gray-400">Updates server stats every 30 seconds</small>
+                  </div>
+                  <label class="toggle ml-auto">
+                    <input type="checkbox" unchecked>
+                    <span class="slider"></span>
+                  </label>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="bg-[#2e2e2e] flex items-center px-4 py-3 text-gray-300 rounded-lg duration-150 all">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-icon mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <div class="flex flex-col flex-grow mr-6">
+                    <span>Display Ping</span>
+                    <small class="text-xs text-gray-400">Display last ping on Last Stats</small>
+                  </div>
+                  <label class="toggle ml-auto">
+                    <input type="checkbox" unchecked>
+                    <span class="slider"></span>
+                  </label>
+                </a>
+              </li>
+            </ul>
+            <div class=" my-6 border-t border-[#3f3f3f]"></div>
+            <div class="flex justify-center mt-4">
+              <button id="close-popup" class="bg-[#1ea54c] hover:bg-[#24c95d] text-white px-4 py-2 rounded-lg transition duration-150">
+                Save Settings
+              </button>
+            </div>
+        </div>
+      </div>
+      
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const settingsBtn = document.getElementById('settings-btn');
+          const popup = document.getElementById('settings-popup');
+          const closePopup = document.getElementById('close-popup');
+      
+          settingsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            popup.classList.remove('pointer-events-none');
+            popup.classList.add('bg-opacity-50');
+            popup.classList.remove('opacity-0');
+          });
+      
+          const hidePopup = () => {
+            popup.classList.add('opacity-0');
+            setTimeout(() => {
+              popup.classList.remove('bg-opacity-50');
+              popup.classList.add('pointer-events-none');
+            }, 150);
+          };
+      
+          closePopup.addEventListener('click', hidePopup);
+      
+          popup.addEventListener('click', (e) => {
+            if (e.target === popup) {
+              hidePopup();
+            }
+          });
+        });
+      </script>
+      <div class="mt-6 pt-6 border-t border-[#3f3f3f]">
+        <ul class="space-y-2">
+          <li>
+            <a href="#" id="settings-btn" class="flex items-center px-3 py-3 text-gray-300 rounded-lg hover:bg-[#2e2e2e] duration-150 all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-icon mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="ml-1">Settings</span>
+            </a>
+          </li>
+          <li>
+            <a id="exit-button" href="#" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-[#2e2e2e] duration-150 all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-icon mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Exit</span>
+            </a>
+          </li>
+        </ul>
+        <script>
+          document.getElementById('exit-button').addEventListener('click', () => {
+              window.close();
+          });
+        </script>
+      </div>
+    </div>
+
+    <div class="flex-1 ml-12 flex">
+      <div class="flex-1 grid grid-cols-12 gap-6">
+        <div class="col-span-7 flex flex-col gap-6">
+          <!-- Server Status -->
+          <div id="card-ServerStatus" class="card p-6">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold">Server Status</h1>
+                <p class="text-gray-400 mt-1">Current informations from lists for <span class="font-bold" id="server-name">Loading...</span></p>
+              </div>
+            </div>
+            <div class="relative">
+              <div class="absolute top-0 left-0 w-full h-1 bg-[#1a1a1a] rounded-t-lg overflow-hidden">
+                <div id="progress-bar" class="h-full bg-green-500 transition-all ease-in-out" style="width: 0%; height: 20px;"></div>
+              </div>
+              <div class="bg-[#2e2e2e] p-4 rounded-t-[4px] rounded-b-xl mb-4 flex items-center justify-between overflow-hidden">
+                <div class="flex items-center">
+                  <img id="server-logo" src="icons/logo.png" alt="Logo" class="w-12 h-12 mr-3 rounded-lg" />
+                  <div>
+                    <div id="server-name2" class="font-semibold">Loading...</div>
+                    <div id="server-address" class="text-gray-400 text-sm">0.0.0.0:00000</div>
+                    <div id="server-status" class="text-gray-400 text-sm">Offline</div>
+                  </div>
+                </div>
+                <div class="mx-6 flex-grow text-center overflow-hidden hidden xl:block">
+                  <div id="motd1" class="font-semibold">Loading...</div>
+                  <div id="motd2" class="text-gray-400">Loading...</div>
+                </div>
+                <div class="flex items-center mr-3">
+                  <div id="server-likes" class="text-xl font-bold mr-2">0</div>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 107.41" class="w-5 h-5 mt-1 fill-white" xml:space="preserve">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M60.83,17.19C68.84,8.84,74.45,1.62,86.79,0.21c23.17-2.66,44.48,21.06,32.78,44.41
+                      c-3.33,6.65-10.11,14.56-17.61,22.32c-8.23,8.52-17.34,16.87-23.72,23.2l-17.4,17.26L46.46,93.56C29.16,76.9,0.95,55.93,0.02,29.95
+                      C-0.63,11.75,13.73,0.09,30.25,0.3C45.01,0.5,51.22,7.84,60.83,17.19L60.83,17.19L60.83,17.19z"/>
+                  </svg>
+                </div>    
+              </div>
+            </div>
+
+            <div class="flex flex-wrap w-full gap-4 mt-8" id="mc-navigation-buttons">
+              <button id="mc-list-button" class="flex-1 min-w-[120px] bg-[#2e2e2e] hover:bg-[#3a3a3a] text-white px-4 py-2 rounded-lg transition-all duration-200 active">MCList</button>
+              <button id="topka-mc-button" class="flex-1 min-w-[120px] bg-[#2e2e2e] hover:bg-[#3a3a3a] text-white px-4 py-2 rounded-lg transition-all duration-200">TopkaMC</button>
+              <button id="mc-lista-button" class="flex-1 min-w-[120px] bg-[#2e2e2e] hover:bg-[#3a3a3a] text-white px-4 py-2 rounded-lg transition-all duration-200">MCLista</button>
+              <button id="serwery-mc-button" class="flex-1 min-w-[120px] bg-[#2e2e2e] hover:bg-[#3a3a3a] text-white px-4 py-2 rounded-lg transition-all duration-200">SerweryMC</button>
+            </div>
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                const mcButtons = document.querySelectorAll('#mc-navigation-buttons button');
+                
+                mcButtons.forEach(button => {
+                  button.addEventListener('click', () => {
+                    mcButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    window.ipcRenderer.send('button-clicked', button.id);
+                  });
+                });
+              });
+            </script>
+          </div>
+
+          <!-- Scan Server -->
+          
+          <div id="card-scanServer" class="card p-6 hidden">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold">Scan Server</h1>
+                <p class="text-gray-400 mt-1">Scan the server to get more information about it</p>
+              </div>
+            </div>
+          
+            <div class="mb-4 flex gap-4">
+              <div class="w-2/3">
+                <label for="scan-serverip" class="block text-sm font-medium text-gray-300 mb-1">Server IP</label>
+                <input type="text" id="scan-serverip" name="scan-serverip"
+                  class="w-full px-3 py-2 border border-[#3f3f3f] rounded-lg bg-[#212121] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9ca3af]"
+                  placeholder="Enter server IP">
+              </div>
+              <div class="w-1/3">
+                <label for="scan-serverport" class="block text-sm font-medium text-gray-300 mb-1">Server Port</label>
+                <input type="text" disabled id="scan-serverport" name="scan-serverport"
+                  class="w-full px-3 py-2 border border-[#3f3f3f] rounded-lg bg-[#2e2e2e] text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9ca3af]"
+                  placeholder="Port" value="25565" readonly>
+              </div>              
+              
+            </div>
+            <div class="mt-8 pt-6 border-t border-[#3f3f3f]"></div>
+            <div class="flex items-center justify-between flex-wrap gap-4 mt-2">
+              <div class="flex items-center gap-3">
+                <label class="toggle ml-auto">
+                  <input type="checkbox" id="advanced-scan">
+                  <span class="slider"></span>
+                </label>
+                <div class="flex flex-col flex-grow mr-6">
+                  <span>Advanced</span>
+                  <small class="text-xs text-gray-400">Get more information about the server</small>
+                </div>
+              </div>
+              
+              <button id="start-scan" class="bg-[#1ea54c] w-[140px] hover:bg-[#24c95d] text-white px-4 py-2 rounded-lg transition duration-150">
+                Scan Server
+              </button>
+              <script>
+                document.getElementById('start-scan').addEventListener('click', function() {
+                  const serverIP = document.getElementById('scan-serverip').value;
+                  const serverPort = document.getElementById('scan-serverport').value;
+                  const advanced = document.getElementById('advanced-scan').checked; // true/false
+
+                  window.ipcRenderer.send('start-scanning', {
+                    serverIP: serverIP,
+                    serverPort: serverPort,
+                    advanced: advanced
+                  });
+                  document.getElementById('card-scannedServer').classList.remove('hidden');
+                });
+              </script>
+            </div>
+          </div>
+
+
+          <!-- Received Scan Info -->
+          <div id="card-scannedServer" class="card p-6 hidden">
+            <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold mb-2">Scanned Server</h1>
+            <p class="text-gray-400 mb-6">Here is the information about the scanned server</p>
+              <!-- Scanned server -->
+              <div id="server-loaded" class="relative bg-[#2e2e2e] p-4 rounded-lg mb-4 flex items-center justify-between overflow-hidden">
+                
+                <div class="scan-online-players absolute top-2 right-3 text-white text-sm font-semibold px-3 py-1 rounded-full">
+                  0/0
+                </div>
+          
+                <div class="flex items-center">
+                  <img id="scan-server-logo" src="icons/logo.png" alt="Logo" class="w-12 h-12 mr-3 rounded-lg" />
+                  <div>
+                    <div id="scan-server-name" class="font-semibold">Loading...</div>
+                    <div id="scan-server-address" class="text-gray-400 text-sm">0.0.0.0:00000</div>
+                    <div id="scan-server-status" class="text-gray-400 text-sm">Offline</div>
+                  </div>
+                </div>
+          
+                <div class="mx-6 flex-grow text-center overflow-hidden hidden xl:block">
+                  <div id="scan-motd1" class="font-semibold">Loading...</div>
+                  <div id="scan-motd2" class="text-gray-400">Loading...</div>
+                </div>
+          
+              <!-- Scanned server DNS -->
+
+              </div>
+          
+              <div class="scrollable-list max-h-[calc(100vh-625px)] overflow-y-auto pr-4 rounded-xl">
+                <table class="w-full border-separate border-spacing-y-2">
+                  <thead class="sticky top-0 bg-[#212121] z-10">
+                    <tr class="text-left text-gray-400">
+                      <th class="pb-3">Hostname</th>
+                      <th class="pb-3">Type</th>
+                      <th class="pb-3">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scan-server-dns">
+                  </tbody>
+                </table>
+              </div>
+              <!-- End of current server -->
+          </div>
+          
+
+
+
+
+          <!-- Spoof Likes -->
+          
+          <div id="card-SpoofLikes" class="card p-6 hidden">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold">Spoof Likes</h1>
+                <p class="text-gray-400 mt-1">Add likes to the selected Minecraft server</p>
+              </div>
+            </div>
+          
+            <div class="mb-4">
+              <label for="spoof-serverip" class="block text-sm font-medium text-gray-300 mb-1">Server IP</label>
+              <input type="text" id="spoof-serverip" name="spoof-serverip"
+                class="w-full px-3 py-2 border border-[#3f3f3f] rounded-lg bg-[#212121] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9ca3af]"
+                placeholder="Enter server IP">
+            </div>
+          
+            <div class="mb-4 flex flex-col md:flex-row md:space-x-4">
+              <div class="flex-1 mb-4 md:mb-0">
+                <label for="spoof-listselect" class="block text-sm font-medium text-gray-300 mb-1">Select List</label>
+                <select id="spoof-listselect" name="spoof-listselect"
+                  class="w-full px-3 py-2 border border-[#3f3f3f] rounded-lg bg-[#212121] text-white focus:outline-none focus:ring-2 focus:ring-[#9ca3af]">
+                  <option value="mclist">McList</option>
+                  <option value="topkamc" disabled>TopkaMC</option>
+                  <option value="mclista" disabled>MCLista</option>
+                  <option value="serwerymc" disabled>SerweryMC</option>
+                </select>
+              </div>
+          
+              <div class="flex-1">
+                <label for="spoof-methodselect" class="block text-sm font-medium text-gray-300 mb-1">Select Method</label>
+                <select id="spoof-methodselect" name="spoof-methodselect"
+                  class="w-full px-3 py-2 border border-[#3f3f3f] rounded-lg bg-[#212121] text-white focus:outline-none focus:ring-2 focus:ring-[#9ca3af]">
+                  <option value="answer1">Manual</option>
+                  <option value="answer-beta" disabled>Auto (Beta)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-[#3f3f3f]"></div> 
+            <div class="flex items-center justify-between flex-wrap gap-4 mt-2">
+              <div class="flex items-center gap-3">
+                <label class="toggle ml-auto">
+                  <input type="checkbox" id="log-progress-toggle">
+                  <span class="slider"></span>
+                </label>
+                <div class="flex flex-col flex-grow mr-6">
+                  <span>Log Progress</span>
+                  <small class="text-xs text-gray-400">Save information in Last Stats</small>
+                </div>
+              </div>
+              <button id="start-spoof" disabled class="bg-[#1ea54c] disabled:bg-[#0d6129] disabled:text-gray-400 w-[140px] hover:bg-[#24c95d] text-white px-4 py-2 rounded-lg transition duration-150">
+                Verify
+              </button>
+              <script>
+                document.getElementById('start-spoof').addEventListener('click', function() {
+                  const serverIP = document.getElementById('spoof-serverip').value;
+                  const selectedList = document.getElementById('spoof-listselect').value;
+                  const selectedMethod = document.getElementById('spoof-methodselect').value;
+                  
+                  const logProgress = document.getElementById('log-progress-toggle').checked; // true/false
+
+                  window.ipcRenderer.send('spoof-start', {
+                    serverIP: serverIP,
+                    selectedList: selectedList,
+                    selectedMethod: selectedMethod,
+                    logProgress: logProgress
+                  });
+                });
+              </script>
+            </div>
+          </div>
+
+          <!-- Verify selected server -->
+
+          <div id="card-selectedServer" class="card p-6 hidden">
+            <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold mb-2">Selected Server</h1>
+            <p class="text-gray-400 mb-6">Your selected server from the selected list will appear here</p>
+            <div class="scrollable-list max-h-[calc(100vh-450px)] overflow-y-auto rounded-xl pr-2 w-[calc(100%+12px)]">
+              <div id="server-loaded" class="bg-[#2e2e2e] p-4 rounded-lg mb-4 flex items-center justify-between overflow-hidden">
+                <div class="flex items-center">
+                    <img id="spoof-server-logo" src="icons/logo.png" alt="Logo" class="w-12 h-12 mr-3 rounded-lg" />
+                    <div>
+                      <div id="spoof-server-name" class="font-semibold">Loading...</div>
+                      <div id="spoof-server-address" class="text-gray-400 text-sm">0.0.0.0:00000</div>
+                      <div id="spoof-server-status" class="text-gray-400 text-sm">Offline</div>
+                    </div>
+                  </div>
+                  <div class="mx-6 flex-grow text-center overflow-hidden hidden xl:block">
+                    <div id="spoof-motd1" class="font-semibold">Loading...</div>
+                    <div id="spoof-motd2" class="text-gray-400">Loading...</div>
+                  </div>
+                  <div class="flex items-center mr-3">
+                    <div id="spoof-serverlikes" class="text-xl font-bold mr-2">0</div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 107.41" class="w-5 h-5 mt-1 fill-white" xml:space="preserve">
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M60.83,17.19C68.84,8.84,74.45,1.62,86.79,0.21c23.17-2.66,44.48,21.06,32.78,44.41
+                        c-3.33,6.65-10.11,14.56-17.61,22.32c-8.23,8.52-17.34,16.87-23.72,23.2l-17.4,17.26L46.46,93.56C29.16,76.9,0.95,55.93,0.02,29.95
+                        C-0.63,11.75,13.73,0.09,30.25,0.3C45.01,0.5,51.22,7.84,60.83,17.19L60.83,17.19L60.83,17.19z"/>
+                    </svg>
+                  </div>  
+                </div>
+              <!-- End of current server -->
+            </div>
+          </div>
+          
+          
+          <!-- Latest Servers -->
+          <div id="card-LatestServers" class="card p-6">
+            <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold mb-2">Latest Servers</h1>
+            <p class="text-gray-400 mb-6">List of recently checked Minecraft Servers</p>
+            <div class="scrollable-list max-h-[calc(100vh-450px)] overflow-y-auto rounded-xl pr-2 w-[calc(100%+12px)]">
+              <!-- Server Content -->
+              
+              <!-- Server 1 -->
+              <div class="bg-[#2e2e2e] p-4 rounded-lg mb-4 flex items-center justify-between overflow-hidden">
+                <div class="flex items-center">
+                  <img id="server-logo" src="icons/logo.png" alt="Logo" class="w-12 h-12 mr-3 rounded-lg" />
+                  <div>
+                    <div id="server-name2" class="font-semibold">Loading...</div>
+                    <div id="server-address" class="text-gray-400 text-sm">0.0.0.0:00000</div>
+                    <div id="server-status" class="text-gray-400 text-sm">Offline</div>
+                  </div>
+                </div>
+                <div class="mx-6 flex-grow text-center overflow-hidden hidden xl:block">
+                  <div id="motd1" class="font-semibold">Loading...</div>
+                  <div id="motd2" class="text-gray-400">Loading...</div>
+                </div>
+                <div class="flex items-center mr-3">
+                  <div id="server-likes" class="text-xl font-bold mr-2">0</div>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 107.41" class="w-5 h-5 mt-1 fill-white" xml:space="preserve">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M60.83,17.19C68.84,8.84,74.45,1.62,86.79,0.21c23.17-2.66,44.48,21.06,32.78,44.41
+                      c-3.33,6.65-10.11,14.56-17.61,22.32c-8.23,8.52-17.34,16.87-23.72,23.2l-17.4,17.26L46.46,93.56C29.16,76.9,0.95,55.93,0.02,29.95
+                      C-0.63,11.75,13.73,0.09,30.25,0.3C45.01,0.5,51.22,7.84,60.83,17.19L60.83,17.19L60.83,17.19z"/>
+                  </svg>
+                </div>    
+              </div>
+              <!-- End of current server -->
+            </div>
+          </div>
+        </div>
+        
+
+        <div class="col-span-5 card p-6 flex flex-col rounded-xl">
+          <h1 class="xl:text-4xl lg:text-3xl text-2xl font-bold mb-2">Last Stats</h1>
+          <p class="text-gray-400 mb-6">Last data sent or received from Minecraft Servers during your activity<p>
+        
+          <div class="scrollable-list max-h-[calc(100vh-200px)] overflow-y-auto pr-4 rounded-xl">
+            <table class="w-full">
+              <thead class="sticky top-0 bg-[#212121] z-10">
+                <tr class="text-left text-gray-400">
+                  <th class="pb-3">Status</th>
+                  <th class="pb-3">Label</th>
+                  <th class="pb-3">Progress</th>
+                </tr>
+              </thead>
+              <tbody id="last-stats">
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
